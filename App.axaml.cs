@@ -6,7 +6,7 @@ using xse_preloader_config.Views;
 
 namespace xse_preloader_config
 {
-    public partial class App : Application
+    public class App : Application
     {
         public override void Initialize()
         {
@@ -19,12 +19,11 @@ namespace xse_preloader_config
             {
                 desktop.MainWindow = new MainWindow
                 {
-                    DataContext = new MainWindowViewModel(),
+                    DataContext = new MainViewModel()
                 };
             }
 
             base.OnFrameworkInitializationCompleted();
         }
-
     }
 }

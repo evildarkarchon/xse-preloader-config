@@ -1752,7 +1752,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Users\\evild\\RiderProjects\\xse-preloader-config\\xse-preloader-config.csproj",
-      "projectName": "xse-preloader-config",
+      "projectName": "xSE-Preloader-Config",
       "projectPath": "C:\\Users\\evild\\RiderProjects\\xse-preloader-config\\xse-preloader-config.csproj",
       "packagesPath": "C:\\Users\\evild\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\evild\\RiderProjects\\xse-preloader-config\\obj\\",

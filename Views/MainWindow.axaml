@@ -1,20 +1,88 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:xse_preloader_config.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-        x:Class="xse_preloader_config.Views.MainWindow"
-        x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="xse_preloader_config">
+        xmlns:local="clr-namespace:xse_preloader_config"
+        mc:Ignorable="d"
+        x:DataType="local:ViewModels.MainViewModel"
+        Title="Preloader Configurator" Width="600" Height="800">
 
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainWindowViewModel/>
-    </Design.DataContext>
+    <StackPanel Margin="10">
+        <!-- Load Method -->
+        <ItemsControl Items="{Binding Processes.ProcessItems}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="local:ViewModels.ProcessItemViewModel">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Width="150" />
+                        <CheckBox IsChecked="{Binding Allow}" Content="Allow" VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
 
-    <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <!-- Toggle Advanced Options -->
+        <CheckBox Content="Show Advanced Options"
+                  IsChecked="{Binding ShowAdvancedOptions}"
+                  Margin="0 10" />
 
+        <!-- Advanced Options -->
+        <StackPanel IsVisible="{Binding ShowAdvancedOptions}" Margin="0 10">
+            <StackPanel DataContext="{Binding AdvancedOptions}">
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Original Library:" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding OriginalLibrary}" Width="200" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Import Library Name:" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding ImportLibraryName}" Width="200" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Import Function Name:" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding ImportFunctionName}" Width="200" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Thread Number:" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding ThreadNumber}" Width="200" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Load Delay (ms):" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding LoadDelay}" Width="200" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 5">
+                    <TextBlock Text="Hook Delay (ms):" VerticalAlignment="Center" Width="150" />
+                    <TextBox Text="{Binding HookDelay}" Width="200" />
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Processes -->
+        <StackPanel>
+            <TextBlock Text="Processes:" Margin="0 10" />
+            <ItemsControl Items="{Binding Processes.ProcessItems}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Width="150" />
+                            <CheckBox IsChecked="{Binding Allow}" Content="Allow" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <!-- Error Message -->
+        <StackPanel>
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="Red"
+                       Margin="0,10,0,0"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBooleanConverter}}" />
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10">
+            <Button Content="Open Configuration File" Command="{Binding OpenXmlCommand}" Margin="5" />
+            <Button Content="Save Changes" Command="{Binding SaveXmlCommand}" Margin="5" />
+            <Button Content="Save As" Command="{Binding SaveAsXmlCommand}" Margin="5" />
+        </StackPanel>
+    </StackPanel>
 </Window>

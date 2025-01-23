@@ -7,7 +7,6 @@ namespace xse_preloader_config
 {
     public class ViewLocator : IDataTemplate
     {
-
         public Control? Build(object? param)
         {
             if (param is null)
