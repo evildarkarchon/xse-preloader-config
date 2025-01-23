@@ -14,16 +14,16 @@
                 <DataTemplate x:DataType="local:ViewModels.ProcessItemViewModel">
                     <StackPanel Orientation="Horizontal">
                         <!-- TextBlock with a Tooltip -->
-                        <TextBlock Text="{Binding Name}" 
-                                   VerticalAlignment="Center" 
-                                   Width="150" 
+                        <TextBlock Text="{Binding Name}"
+                                   VerticalAlignment="Center"
+                                   Width="150"
                                    ToolTip.Tip="{Binding Tooltip}" />
-                        
+
                         <!-- CheckBox with a Tooltip -->
-                        <CheckBox IsChecked="{Binding Allow}" 
-                                  Content="Allow" 
-                                  VerticalAlignment="Center" 
-                                  ToolTip.Tip="{Binding Tooltip, FallbackValue=''}"/>
+                        <CheckBox IsChecked="{Binding Allow}"
+                                  Content="Allow"
+                                  VerticalAlignment="Center"
+                                  ToolTip.Tip="{Binding Tooltip, FallbackValue=''}" />
                     </StackPanel>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
