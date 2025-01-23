@@ -1,8 +1,7 @@
 ﻿using ReactiveUI;
 
-namespace xse_preloader_config.ViewModels
+namespace xse_preloader_config.ViewModels;
+
+public class ViewModelBase : ReactiveObject
 {
-    public class ViewModelBase : ReactiveObject
-    {
-    }
 }

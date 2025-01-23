@@ -9,6 +9,14 @@ using ReactiveUI;
 
 namespace xse_preloader_config.ViewModels;
 
+/// <summary>
+/// Represents the main view model for the Preloader Configurator application.
+/// </summary>
+/// <remarks>
+/// This view model serves as the primary hub for data binding between the UI and the underlying logic of the application.
+/// It manages advanced options, processes, and commands for opening, saving, and managing XML files.
+/// Additionally, it facilitates error handling and visibility toggles for advanced features.
+/// </remarks>
 public class MainViewModel : ReactiveObject
 {
     private readonly Window? _parentWindow;
@@ -42,6 +50,15 @@ public class MainViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> SaveXmlCommand { get; }
     public ReactiveCommand<Unit, Task> SaveAsXmlCommand { get; }
 
+    /// <summary>
+    /// Represents the main view model for the application's main window interface.
+    /// </summary>
+    /// <remarks>
+    /// The MainViewModel class serves as a view model for managing the core functionality of the application,
+    /// including options and processes related to XML configuration workflows.
+    /// It provides commands for opening, saving, and managing XML files, as well as handling advanced options,
+    /// error messages, and UI states.
+    /// </remarks>
     public MainViewModel(Window? parentWindow = null)
     {
         _parentWindow = parentWindow;
@@ -70,6 +87,17 @@ public class MainViewModel : ReactiveObject
         SaveAsXmlCommand = ReactiveCommand.Create(SaveAsXml);
     }
 
+    /// <summary>
+    /// Opens a file dialog to allow the user to select an XML configuration file.
+    /// </summary>
+    /// <remarks>
+    /// Displays a file picker dialog with options configured to filter XML files.
+    /// On successful user selection, the selected file is processed (e.g., loaded into the application).
+    /// </remarks>
+    /// <returns>
+    /// A task that represents the asynchronous file dialog operation. This task completes
+    /// when the file dialog is closed and a file is selected, or no file is chosen.
+    /// </returns>
     private async Task OpenFileDialogAsync()
     {
         {
@@ -92,6 +120,16 @@ public class MainViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Loads and parses an XML file from the specified file path, populating the application's advanced options
+    /// and processes with the data extracted from the XML structure.
+    /// </summary>
+    /// <param name="filePath">The file path of the XML file to be loaded and parsed.</param>
+    /// <remarks>
+    /// This method reads the XML structure of a configuration file, extracts the data relevant to advanced options
+    /// and processes, and updates the application state accordingly. If any error occurs during loading or parsing,
+    /// the error message is updated to reflect the issue.
+    /// </remarks>
     private void LoadXml(string filePath)
     {
         try
@@ -99,45 +137,41 @@ public class MainViewModel : ReactiveObject
             var document = XDocument.Load(filePath);
             var root = document.Element("xSE")?.Element("PluginPreloader");
 
-            if (root != null)
+            if (root == null) return;
+            // Load Advanced Options
+            AdvancedOptions.OriginalLibrary = root.Element("OriginalLibrary")?.Value ?? "";
+            var loadMethod = root.Element("LoadMethod");
+            if (loadMethod != null)
             {
-                // Load Advanced Options
-                AdvancedOptions.OriginalLibrary = root.Element("OriginalLibrary")?.Value ?? "";
-                var loadMethod = root.Element("LoadMethod");
-                if (loadMethod != null)
-                {
-                    AdvancedOptions.ImportLibraryName =
-                        loadMethod.Element("ImportAddressHook")?.Element("LibraryName")?.Value ?? "";
-                    AdvancedOptions.ImportFunctionName =
-                        loadMethod.Element("ImportAddressHook")?.Element("FunctionName")?.Value ?? "";
-                    AdvancedOptions.ThreadNumber =
-                        loadMethod.Element("OnThreadAttach")?.Element("ThreadNumber")?.Value ?? "";
-                }
+                AdvancedOptions.ImportLibraryName =
+                    loadMethod.Element("ImportAddressHook")?.Element("LibraryName")?.Value ?? "";
+                AdvancedOptions.ImportFunctionName =
+                    loadMethod.Element("ImportAddressHook")?.Element("FunctionName")?.Value ?? "";
+                AdvancedOptions.ThreadNumber =
+                    loadMethod.Element("OnThreadAttach")?.Element("ThreadNumber")?.Value ?? "";
+            }
 
-                AdvancedOptions.LoadDelay = root.Element("LoadDelay")?.Value ?? "0";
-                AdvancedOptions.HookDelay = root.Element("HookDelay")?.Value ?? "0";
+            AdvancedOptions.LoadDelay = root.Element("LoadDelay")?.Value ?? "0";
+            AdvancedOptions.HookDelay = root.Element("HookDelay")?.Value ?? "0";
 
-                // Load Processes
-                Processes.ProcessItems.Clear();
-                var processes = root.Element("Processes");
-                if (processes != null)
+            // Load Processes
+            Processes.ProcessItems.Clear();
+            var processes = root.Element("Processes");
+            if (processes == null) return;
+            foreach (var item in processes.Elements("Item"))
+            {
+                var name = item.Attribute("Name")?.Value;
+                var allow = bool.TryParse(item.Attribute("Allow")?.Value, out var result) && result;
+                var tooltip = item.Nodes().OfType<XComment>().FirstOrDefault()?.Value ?? "";
+
+                if (!string.IsNullOrEmpty(name))
                 {
-                    foreach (var item in processes.Elements("Item"))
+                    Processes.ProcessItems.Add(new ProcessItemViewModel
                     {
-                        var name = item.Attribute("Name")?.Value;
-                        var allow = bool.TryParse(item.Attribute("Allow")?.Value, out var result) && result;
-                        var tooltip = item.Nodes().OfType<XComment>().FirstOrDefault()?.Value;
-
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            Processes.ProcessItems.Add(new ProcessItemViewModel
-                            {
-                                Name = name,
-                                Allow = allow,
-                                Tooltip = tooltip
-                            });
-                        }
-                    }
+                        Name = name,
+                        Allow = allow,
+                        Tooltip = tooltip
+                    });
                 }
             }
         }
@@ -147,6 +181,16 @@ public class MainViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Saves the current configuration data to an XML file at the specified file path.
+    /// </summary>
+    /// <param name="filePath">
+    /// The file path where the XML configuration should be saved. If null or empty, the method will attempt to use the current file path.
+    /// </param>
+    /// <remarks>
+    /// This method generates an XML document containing advanced options and processes data, and saves it to the specified location.
+    /// If the file path is invalid or an error occurs during the saving process, an appropriate error message is set.
+    /// </remarks>
     private void SaveXml(string? filePath = null)
     {
         filePath ??= CurrentFilePath; // Use CurrentFilePath if no filePath is provided
@@ -175,7 +219,7 @@ public class MainViewModel : ReactiveObject
             // Add processes to the XML
             var processes = new XElement("Processes",
                 Processes.ProcessItems.Select(p => new XElement("Process",
-                    new XAttribute("Name", p.Name),
+                    new XAttribute("Name", p.Name ?? string.Empty),
                     new XAttribute("Allow", p.Allow),
                     new XComment(p.Tooltip ?? "")
                 ))
@@ -195,6 +239,17 @@ public class MainViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Saves the current configuration as an XML file, allowing the user to specify a file name and location.
+    /// </summary>
+    /// <remarks>
+    /// The method prompts the user with a save file dialog to select a destination and provides default options
+    /// for file name and type. If a file path is selected, it saves the XML configuration to the specified file.
+    /// This command handles scenarios where the save operation is canceled or fails.
+    /// </remarks>
+    /// <returns>
+    /// A <see cref="Task"/> representing the asynchronous save operation.
+    /// </returns>
     private async Task SaveAsXml()
     {
         if (_parentWindow?.StorageProvider != null)

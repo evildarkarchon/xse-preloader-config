@@ -9,12 +9,21 @@
 
     <StackPanel Margin="10">
         <!-- Load Method -->
-        <ItemsControl Items="{Binding Processes.ProcessItems}">
+        <ItemsControl ItemsSource="{Binding Processes.ProcessItems}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="local:ViewModels.ProcessItemViewModel">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Width="150" />
-                        <CheckBox IsChecked="{Binding Allow}" Content="Allow" VerticalAlignment="Center" />
+                        <!-- TextBlock with a Tooltip -->
+                        <TextBlock Text="{Binding Name}" 
+                                   VerticalAlignment="Center" 
+                                   Width="150" 
+                                   ToolTip.Tip="{Binding Tooltip}" />
+                        
+                        <!-- CheckBox with a Tooltip -->
+                        <CheckBox IsChecked="{Binding Allow}" 
+                                  Content="Allow" 
+                                  VerticalAlignment="Center" 
+                                  ToolTip.Tip="{Binding Tooltip, FallbackValue=''}"/>
                     </StackPanel>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -58,7 +67,7 @@
         <!-- Processes -->
         <StackPanel>
             <TextBlock Text="Processes:" Margin="0 10" />
-            <ItemsControl Items="{Binding Processes.ProcessItems}">
+            <ItemsControl ItemsSource="{Binding Processes.ProcessItems}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">

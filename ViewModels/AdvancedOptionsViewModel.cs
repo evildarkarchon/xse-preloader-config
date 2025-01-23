@@ -2,6 +2,14 @@
 
 namespace xse_preloader_config.ViewModels;
 
+/// <summary>
+/// Represents the view model for managing advanced options in the Preloader Configurator application.
+/// </summary>
+/// <remarks>
+/// This view model provides properties for configuring advanced options such as loading methods,
+/// delay settings, exception handler behavior, and related configurations. It is designed
+/// to integrate seamlessly with the application's reactive framework for dynamic UI updates.
+/// </remarks>
 public class AdvancedOptionsViewModel : ReactiveObject
 {
     public string OriginalLibrary { get; set; } = string.Empty;

@@ -5,6 +5,13 @@ using ReactiveUI;
 
 namespace xse_preloader_config.ViewModels;
 
+/// <summary>
+/// Represents the view model for managing a collection of processes.
+/// </summary>
+/// <remarks>
+/// This class provides functionality for loading process information from an XML structure
+/// and managing a collection of process items represented by the <see cref="ProcessItemViewModel"/>.
+/// </remarks>
 public class ProcessesViewModel : ReactiveObject
 {
     public ObservableCollection<ProcessItemViewModel> ProcessItems { get; set; } = new();
