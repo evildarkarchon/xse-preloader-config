@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Controls;
-using Avalonia.Platform.Storage;
 using ReactiveUI;
+using Avalonia.Platform.Storage; // Required for OpenFilePickerAsync
+using System.Collections.Generic;
+using xse_preloader_config.Services;
 
 namespace xse_preloader_config.ViewModels;
 
@@ -21,6 +22,7 @@ public class MainViewModel : ReactiveObject
 {
     private readonly Window? _parentWindow;
     private bool _showAdvancedOptions;
+    public string SaveFilePath { get; set; }
 
     public string ErrorMessage
     {
@@ -29,8 +31,8 @@ public class MainViewModel : ReactiveObject
     }
 
     private string _errorMessage = null!;
-    public AdvancedOptionsViewModel AdvancedOptions { get; }
-    public ProcessesViewModel Processes { get; }
+    public AdvancedOptionsViewModel AdvancedOptions { get; set; }
+    public ProcessesViewModel Processes { get; set; }
 
     public bool ShowAdvancedOptions
     {
@@ -59,218 +61,160 @@ public class MainViewModel : ReactiveObject
     /// It provides commands for opening, saving, and managing XML files, as well as handling advanced options,
     /// error messages, and UI states.
     /// </remarks>
-    public MainViewModel(Window? parentWindow = null)
+    public MainViewModel(Window parentWindow)
     {
         _parentWindow = parentWindow;
-        if (_parentWindow == null)
+
+        OpenXmlCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            // Default logic if no parent window is provided
-            AdvancedOptions = new AdvancedOptionsViewModel();
-            Processes = new ProcessesViewModel();
-        }
-
-        AdvancedOptions = new AdvancedOptionsViewModel();
-        Processes = new ProcessesViewModel();
-
-        OpenXmlCommand = ReactiveCommand.CreateFromTask(OpenFileDialogAsync);
-        SaveXmlCommand = ReactiveCommand.Create(() =>
+            await OpenXmlWithFilePickerAsync();
+        });
+        SaveXmlCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             if (!string.IsNullOrEmpty(CurrentFilePath))
             {
-                SaveXml(CurrentFilePath);
+                await SaveXmlAsync(CurrentFilePath); // Use CurrentFilePath here
             }
             else
             {
-                ErrorMessage = "Error: No file has been opened or selected for saving.";
+                // Handle the case when no file is currently open
+                ErrorMessage = "No file is currently open to save.";
             }
         });
-        SaveAsXmlCommand = ReactiveCommand.Create(SaveAsXml);
     }
 
     /// <summary>
-    /// Opens a file dialog to allow the user to select an XML configuration file.
+    /// Asynchronously opens and processes an XML configuration file.
     /// </summary>
     /// <remarks>
-    /// Displays a file picker dialog with options configured to filter XML files.
-    /// On successful user selection, the selected file is processed (e.g., loaded into the application).
+    /// This method attempts to parse an XML file from the provided file path and loads
+    /// its contents into various components of the view model, such as advanced options
+    /// and process configurations. If an error occurs during the operation, an error message
+    /// is generated and stored.
     /// </remarks>
+    /// <param name="filePath">
+    /// The path to the XML file that needs to be opened and processed.
+    /// </param>
     /// <returns>
-    /// A task that represents the asynchronous file dialog operation. This task completes
-    /// when the file dialog is closed and a file is selected, or no file is chosen.
+    /// A task representing the asynchronous operation of opening and loading the XML file.
     /// </returns>
-    private async Task OpenFileDialogAsync()
-    {
-        {
-            var options = new FilePickerOpenOptions
-            {
-                Title = "Select Configuration File",
-                FileTypeFilter = [new FilePickerFileType("XML Files") { Patterns = ["*.xml"] }],
-                AllowMultiple = false
-            };
-
-            if (_parentWindow != null)
-            {
-                var result = await _parentWindow.StorageProvider.OpenFilePickerAsync(options);
-                if (result.Count > 0)
-                {
-                    var filePath = result[0].Path.LocalPath;
-                    LoadXml(filePath);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Loads and parses an XML file from the specified file path, populating the application's advanced options
-    /// and processes with the data extracted from the XML structure.
-    /// </summary>
-    /// <param name="filePath">The file path of the XML file to be loaded and parsed.</param>
-    /// <remarks>
-    /// This method reads the XML structure of a configuration file, extracts the data relevant to advanced options
-    /// and processes, and updates the application state accordingly. If any error occurs during loading or parsing,
-    /// the error message is updated to reflect the issue.
-    /// </remarks>
-    private void LoadXml(string filePath)
+    public async Task OpenXmlAsync(string filePath)
     {
         try
         {
-            var document = XDocument.Load(filePath);
-            var root = document.Element("xSE")?.Element("PluginPreloader");
-
-            if (root == null) return;
-            // Load Advanced Options
-            AdvancedOptions.OriginalLibrary = root.Element("OriginalLibrary")?.Value ?? "";
-            var loadMethod = root.Element("LoadMethod");
-            if (loadMethod != null)
+            if (string.IsNullOrEmpty(filePath))
             {
-                AdvancedOptions.ImportLibraryName =
-                    loadMethod.Element("ImportAddressHook")?.Element("LibraryName")?.Value ?? "";
-                AdvancedOptions.ImportFunctionName =
-                    loadMethod.Element("ImportAddressHook")?.Element("FunctionName")?.Value ?? "";
-                AdvancedOptions.ThreadNumber =
-                    loadMethod.Element("OnThreadAttach")?.Element("ThreadNumber")?.Value ?? "";
+                ErrorMessage = "No file path provided.";
+                return;
             }
 
-            AdvancedOptions.LoadDelay = root.Element("LoadDelay")?.Value ?? "0";
-            AdvancedOptions.HookDelay = root.Element("HookDelay")?.Value ?? "0";
+            CurrentFilePath = filePath;
+            var parser = new XmlParser();
 
-            // Load Processes
-            Processes.ProcessItems.Clear();
-            var processes = root.Element("Processes");
-            if (processes == null) return;
-            foreach (var item in processes.Elements("Item"))
-            {
-                var name = item.Attribute("Name")?.Value;
-                var allow = bool.TryParse(item.Attribute("Allow")?.Value, out var result) && result;
-                var tooltip = item.Nodes().OfType<XComment>().FirstOrDefault()?.Value ?? "";
+            // Use the asynchronous ParseAsync method
+            var parsedData = await parser.ParseAsync(filePath);
 
-                if (!string.IsNullOrEmpty(name))
-                {
-                    Processes.ProcessItems.Add(new ProcessItemViewModel
-                    {
-                        Name = name,
-                        Allow = allow,
-                        Tooltip = tooltip
-                    });
-                }
-            }
+            // Populate the ViewModels with parsed data
+            AdvancedOptions.LoadFromData(parsedData);
+            Processes.LoadFromData(parsedData.Processes);
+
+            ErrorMessage = "File loaded successfully.";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error loading XML: {ex.Message}";
+            ErrorMessage = $"Error while opening XML: {ex.Message}";
+        }
+    }
+    
+    /// <summary>
+    /// Opens the file picker dialog to select an XML file and loads it.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public async Task OpenXmlWithFilePickerAsync()
+    {
+        try
+        {
+            if (_parentWindow?.StorageProvider == null)
+            {
+                ErrorMessage = "Storage provider is not available.";
+                return;
+            }
+
+            // Show file picker dialog for selecting XML files
+            var result = await _parentWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Open XML File",
+                AllowMultiple = false, // We allow only a single file to be selected
+                FileTypeFilter = new List<FilePickerFileType>
+                {
+                    FilePickerFileTypes.TextPlain, // Optionally, allow text files too
+                    new("XML Files")
+                    {
+                        Patterns = ["*.xml"] // File extensions to filter
+                    }
+                }
+            });
+
+            if (result == null || result.Count == 0)
+            {
+                ErrorMessage = "No file selected.";
+                return;
+            }
+
+            // Get the selected file path
+            var selectedFile = result[0];
+            var filePath = selectedFile.Path.LocalPath;
+
+            // Ensure a file path is available and valid
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                ErrorMessage = "Invalid file selected.";
+                return;
+            }
+
+            // Use the OpenXmlAsync method to load the selected file
+            await OpenXmlAsync(filePath);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error while selecting or opening the file: {ex.Message}";
         }
     }
 
     /// <summary>
-    /// Saves the current configuration data to an XML file at the specified file path.
+    /// Saves the application's configuration data as an XML file to the specified file path.
     /// </summary>
     /// <param name="filePath">
-    /// The file path where the XML configuration should be saved. If null or empty, the method will attempt to use the current file path.
+    /// The destination file path where the XML file should be saved. If the path is null or empty, the method will use the current file path.
     /// </param>
+    /// <returns>
+    /// A task representing the asynchronous operation to save the XML file. Sets an appropriate error message if an exception occurs during the process.
+    /// </returns>
     /// <remarks>
-    /// This method generates an XML document containing advanced options and processes data, and saves it to the specified location.
-    /// If the file path is invalid or an error occurs during the saving process, an appropriate error message is set.
+    /// The method consolidates configuration data from advanced options and process-related settings into an XML document and writes it to the specified file.
+    /// It handles any errors that occur during the file-saving operation and sets a corresponding error message.
     /// </remarks>
-    private void SaveXml(string? filePath = null)
+    public async Task SaveXmlAsync(string filePath)
     {
-        filePath ??= CurrentFilePath; // Use CurrentFilePath if no filePath is provided
-
-        if (string.IsNullOrEmpty(filePath))
-        {
-            ErrorMessage = "Error: No file path specified.";
-            return;
-        }
-
         try
         {
-            var root = new XElement("Root");
-
-            // Add advanced options to the XML
-            var advancedOptions = new XElement("AdvancedOptions",
-                new XElement("OriginalLibrary", AdvancedOptions.OriginalLibrary),
-                new XElement("ImportLibraryName", AdvancedOptions.ImportLibraryName),
-                new XElement("ImportFunctionName", AdvancedOptions.ImportFunctionName),
-                new XElement("ThreadNumber", AdvancedOptions.ThreadNumber),
-                new XElement("LoadDelay", AdvancedOptions.LoadDelay),
-                new XElement("HookDelay", AdvancedOptions.HookDelay)
+            // Combine the XML from AdvancedOptions and Processes
+            var document = new XDocument(
+                new XDeclaration("1.0", "utf-8", "yes"),
+                new XElement("xSE",
+                    AdvancedOptions.SaveToXml(),
+                    Processes.SaveToXml()
+                )
             );
-            root.Add(advancedOptions);
 
-            // Add processes to the XML
-            var processes = new XElement("Processes",
-                Processes.ProcessItems.Select(p => new XElement("Process",
-                    new XAttribute("Name", p.Name ?? string.Empty),
-                    new XAttribute("Allow", p.Allow),
-                    new XComment(p.Tooltip ?? "")
-                ))
-            );
-            root.Add(processes);
+            // Save the XML to the specified file
+            await Task.Run(() => document.Save(filePath));
 
-            // Save the XML document
-            var document = new XDocument(root);
-            document.Save(filePath);
-
-            CurrentFilePath = filePath; // Update the current file path
-            ErrorMessage = "Configuration saved successfully.";
+            ErrorMessage = "File saved successfully.";
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error saving XML: {ex.Message}";
-        }
-    }
-
-    /// <summary>
-    /// Saves the current configuration as an XML file, allowing the user to specify a file name and location.
-    /// </summary>
-    /// <remarks>
-    /// The method prompts the user with a save file dialog to select a destination and provides default options
-    /// for file name and type. If a file path is selected, it saves the XML configuration to the specified file.
-    /// This command handles scenarios where the save operation is canceled or fails.
-    /// </remarks>
-    /// <returns>
-    /// A <see cref="Task"/> representing the asynchronous save operation.
-    /// </returns>
-    private async Task SaveAsXml()
-    {
-        if (_parentWindow?.StorageProvider != null)
-        {
-            var options = new FilePickerSaveOptions
-            {
-                Title = "Save Configuration File",
-                SuggestedFileName = "config.xml",
-                FileTypeChoices = [new FilePickerFileType("XML Files") { Patterns = ["*.xml"] }]
-            };
-
-            var result = await _parentWindow.StorageProvider.SaveFilePickerAsync(options);
-            if (result != null)
-            {
-                CurrentFilePath = result.Path.LocalPath; // Update the file path
-                SaveXml(CurrentFilePath);
-            }
-            else
-            {
-                ErrorMessage = "Save operation canceled.";
-            }
+            ErrorMessage = $"Error while saving XML: {ex.Message}";
         }
     }
 }

@@ -1,7 +1,14 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:xse_preloader_config">
+             x:Class="xse_preloader_config.App"
+             xmlns:local="clr-namespace:xse_preloader_config"
+             RequestedThemeVariant="Dark">
+    <Application.Styles>
+        <StyleInclude Source="Styles/AvaloniaStyles.axaml" />
+    </Application.Styles>
     <Application.Resources>
+        <!-- Define your application resources (like converters, brushes, etc.) -->
         <local:StringToBooleanConverter x:Key="StringToBooleanConverter" />
     </Application.Resources>
+
 </Application>

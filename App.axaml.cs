@@ -6,7 +6,7 @@ using xse_preloader_config.Views;
 
 namespace xse_preloader_config
 {
-    public class App : Application
+    public partial class App : Application
     {
         public override void Initialize()
         {
@@ -17,10 +17,14 @@ namespace xse_preloader_config
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainViewModel()
-                };
+                // Create the MainWindow
+                var mainWindow = new MainWindow();
+
+                // Pass mainWindow as the parentWindow to MainViewModel
+                mainWindow.DataContext = new MainViewModel(mainWindow);
+
+                // Assign the main window to the desktop lifetime
+                desktop.MainWindow = mainWindow;
             }
 
             base.OnFrameworkInitializationCompleted();

@@ -3,95 +3,111 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:xse_preloader_config"
+        x:Class="xse_preloader_config.Views.MainWindow"
         mc:Ignorable="d"
         x:DataType="local:ViewModels.MainViewModel"
-        Title="Preloader Configurator" Width="600" Height="800">
+        Title="Preloader Configurator" Width="600" Height="800"
+        RequestedThemeVariant="Dark">
 
     <StackPanel Margin="10">
-        <!-- Load Method -->
-        <ItemsControl ItemsSource="{Binding Processes.ProcessItems}">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="local:ViewModels.ProcessItemViewModel">
-                    <StackPanel Orientation="Horizontal">
-                        <!-- TextBlock with a Tooltip -->
-                        <TextBlock Text="{Binding Name}"
-                                   VerticalAlignment="Center"
-                                   Width="150"
-                                   ToolTip.Tip="{Binding Tooltip}" />
-
-                        <!-- CheckBox with a Tooltip -->
-                        <CheckBox IsChecked="{Binding Allow}"
-                                  Content="Allow"
-                                  VerticalAlignment="Center"
-                                  ToolTip.Tip="{Binding Tooltip, FallbackValue=''}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <!-- Toggle Advanced Options -->
-        <CheckBox Content="Show Advanced Options"
-                  IsChecked="{Binding ShowAdvancedOptions}"
-                  Margin="0 10" />
-
-        <!-- Advanced Options -->
-        <StackPanel IsVisible="{Binding ShowAdvancedOptions}" Margin="0 10">
-            <StackPanel DataContext="{Binding AdvancedOptions}">
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Original Library:" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding OriginalLibrary}" Width="200" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Import Library Name:" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding ImportLibraryName}" Width="200" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Import Function Name:" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding ImportFunctionName}" Width="200" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Thread Number:" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding ThreadNumber}" Width="200" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Load Delay (ms):" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding LoadDelay}" Width="200" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0 5">
-                    <TextBlock Text="Hook Delay (ms):" VerticalAlignment="Center" Width="150" />
-                    <TextBox Text="{Binding HookDelay}" Width="200" />
-                </StackPanel>
-            </StackPanel>
-        </StackPanel>
-
-        <!-- Processes -->
+        <!-- Processes Section -->
         <StackPanel>
-            <TextBlock Text="Processes:" Margin="0 10" />
+            <TextBlock Text="Processes" FontSize="16" Margin="0,10,0,5" />
             <ItemsControl ItemsSource="{Binding Processes.ProcessItems}">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Width="150" />
-                            <CheckBox IsChecked="{Binding Allow}" Content="Allow" VerticalAlignment="Center" />
+                    <DataTemplate x:DataType="local:ViewModels.ProcessItemViewModel">
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                            <TextBlock Text="{Binding Name}"
+                                       VerticalAlignment="Center"
+                                       Width="150"
+                                       ToolTip.Tip="{Binding Tooltip}" />
+                            <CheckBox IsChecked="{Binding Allow}"
+                                      Content="Allow"
+                                      VerticalAlignment="Center"
+                                      ToolTip.Tip="{Binding Tooltip}" />
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
 
-        <!-- Error Message -->
-        <StackPanel>
-            <TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="Red"
-                       Margin="0,10,0,0"
-                       IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBooleanConverter}}" />
+        <!-- Toggle Advanced Options -->
+        <CheckBox Content="Show Advanced Options"
+                  IsChecked="{Binding ShowAdvancedOptions}"
+                  Margin="0,10" />
+
+        <!-- Advanced Options Section -->
+        <StackPanel IsVisible="{Binding ShowAdvancedOptions}" Margin="0,10">
+            <TextBlock Text="Advanced Options" FontSize="16" Margin="0,10,0,5" />
+
+            <!-- Original Library -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Original Library:" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.OriginalLibrary}" Width="200" />
+            </StackPanel>
+
+            <!-- Import Library Name -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Import Library Name:" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.ImportLibraryName}" Width="200" />
+            </StackPanel>
+
+            <!-- Import Function Name -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Import Function Name:" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.ImportFunctionName}" Width="200" />
+            </StackPanel>
+
+            <!-- Thread Number -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Thread Number:" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.ThreadNumber}" Width="200" />
+            </StackPanel>
+
+            <!-- Load Delay -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Load Delay (ms):" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.LoadDelay}" Width="200" />
+            </StackPanel>
+
+            <!-- Hook Delay -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Hook Delay (ms):" VerticalAlignment="Center" Width="150" />
+                <TextBox Text="{Binding AdvancedOptions.HookDelay}" Width="200" />
+            </StackPanel>
+
+            <!-- Install Exception Handler -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Install Exception Handler:" VerticalAlignment="Center" Width="150" />
+                <CheckBox IsChecked="{Binding AdvancedOptions.InstallExceptionHandler}" />
+            </StackPanel>
+
+            <!-- Keep Exception Handler -->
+            <StackPanel Orientation="Horizontal" Margin="0,5">
+                <TextBlock Text="Keep Exception Handler:" VerticalAlignment="Center" Width="150" />
+                <CheckBox IsChecked="{Binding AdvancedOptions.KeepExceptionHandler}" />
+            </StackPanel>
         </StackPanel>
 
+        <!-- Error Message -->
+        <TextBlock Text="{Binding ErrorMessage}"
+                   Foreground="Red"
+                   Margin="0,10,0,0"
+                   IsVisible="{Binding ErrorMessage, Converter={StaticResource StringToBooleanConverter}}" />
+
         <!-- Buttons -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10">
-            <Button Content="Open Configuration File" Command="{Binding OpenXmlCommand}" Margin="5" />
-            <Button Content="Save Changes" Command="{Binding SaveXmlCommand}" Margin="5" />
-            <Button Content="Save As" Command="{Binding SaveAsXmlCommand}" Margin="5" />
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,10">
+            <Button Content="Open Configuration File"
+                    Command="{Binding OpenXmlCommand}"
+                    Margin="5" />
+            <Button Content="Save Changes"
+                    Command="{Binding SaveXmlCommand}"
+                    Margin="5" />
+            <Button Content="Save As"
+                    Command="{Binding SaveAsXmlCommand}"
+                    Margin="5" />
         </StackPanel>
     </StackPanel>
 </Window>

@@ -1,4 +1,5 @@
-﻿using ReactiveUI;
+﻿using System.Xml.Linq;
+using xse_preloader_config.Services;
 
 namespace xse_preloader_config.ViewModels;
 
@@ -10,46 +11,61 @@ namespace xse_preloader_config.ViewModels;
 /// delay settings, exception handler behavior, and related configurations. It is designed
 /// to integrate seamlessly with the application's reactive framework for dynamic UI updates.
 /// </remarks>
-public class AdvancedOptionsViewModel : ReactiveObject
+public class AdvancedOptionsViewModel : ViewModelBase
 {
-    public string OriginalLibrary { get; set; } = string.Empty;
-    public string LoadMethod { get; set; } = "ImportAddressHook";
-    public string ImportLibraryName { get; set; } = string.Empty;
-    public string ImportFunctionName { get; set; } = string.Empty;
-    public string ThreadNumber { get; set; } = string.Empty;
-    public string LoadDelay { get; set; } = "0";
-    public string HookDelay { get; set; } = "0";
-    public bool InstallExceptionHandler { get; set; } = true;
+    public string OriginalLibrary { get; set; }
+    public string LoadMethod { get; set; }
+    public string ImportLibraryName { get; set; }
+    public string ImportFunctionName { get; set; }
+    public int ThreadNumber { get; set; }
+    public bool InstallExceptionHandler { get; set; }
     public bool KeepExceptionHandler { get; set; }
+    public int LoadDelay { get; set; }
+    public int HookDelay { get; set; }
 
-/*
-    public void LoadFromXml(XElement root)
+    /// <summary>
+    /// Loads the configuration data from the provided PluginPreloaderData instance into the view model's properties.
+    /// </summary>
+    /// <param name="data">The data object containing configuration information, such as library details, loading method, exception handling settings, and delay configurations.</param>
+    public void LoadFromData(PluginPreloaderData data)
     {
-        var pluginPreloader = root.Element("PluginPreloader");
-        if (pluginPreloader == null) return;
-
-        OriginalLibrary = pluginPreloader.Element("OriginalLibrary")?.Value ?? string.Empty;
-        LoadMethod = pluginPreloader.Element("LoadMethod")?.Attribute("Name")?.Value ?? "ImportAddressHook";
-
-        var importAddressHook = pluginPreloader.Element("LoadMethod")?.Element("ImportAddressHook");
-        if (importAddressHook != null)
-        {
-            ImportLibraryName = importAddressHook.Element("LibraryName")?.Value ?? string.Empty;
-            ImportFunctionName = importAddressHook.Element("FunctionName")?.Value ?? string.Empty;
-        }
-
-        var onThreadAttach = pluginPreloader.Element("LoadMethod")?.Element("OnThreadAttach");
-        if (onThreadAttach != null)
-        {
-            ThreadNumber = onThreadAttach.Element("ThreadNumber")?.Value ?? string.Empty;
-        }
-
-        LoadDelay = pluginPreloader.Element("LoadDelay")?.Value ?? "0";
-        HookDelay = pluginPreloader.Element("HookDelay")?.Value ?? "0";
-        InstallExceptionHandler =
-            bool.TryParse(pluginPreloader.Element("InstallExceptionHandler")?.Value, out var install) && install;
-        KeepExceptionHandler =
-            bool.TryParse(pluginPreloader.Element("KeepExceptionHandler")?.Value, out var keep) && keep;
+        OriginalLibrary = data.OriginalLibrary;
+        LoadMethod = data.LoadMethodName;
+        ImportLibraryName = data.ImportLibraryName;
+        ImportFunctionName = data.ImportFunctionName;
+        ThreadNumber = data.ThreadNumber;
+        InstallExceptionHandler = data.InstallExceptionHandler;
+        KeepExceptionHandler = data.KeepExceptionHandler;
+        LoadDelay = data.LoadDelay;
+        HookDelay = data.HookDelay;
     }
-*/
+
+    /// <summary>
+    /// Saves the advanced options configuration to an XML representation.
+    /// </summary>
+    /// <returns>
+    /// An XElement representing the advanced options, including settings for library loading,
+    /// method configuration, exception handling preferences, and delay configurations.
+    /// </returns>
+    public XElement SaveToXml()
+    {
+        return new XElement("PluginPreloader",
+            new XElement("OriginalLibrary", OriginalLibrary),
+            new XElement("LoadMethod",
+                new XAttribute("Name", LoadMethod),
+                new XElement("ImportAddressHook",
+                    new XElement("LibraryName", ImportLibraryName),
+                    new XElement("FunctionName", ImportFunctionName)
+                ),
+                new XElement("OnThreadAttach",
+                    new XElement("ThreadNumber", ThreadNumber)
+                ),
+                new XElement("OnProcessAttach")
+            ),
+            new XElement("InstallExceptionHandler", InstallExceptionHandler),
+            new XElement("KeepExceptionHandler", KeepExceptionHandler),
+            new XElement("LoadDelay", LoadDelay),
+            new XElement("HookDelay", HookDelay)
+        );
+    }
 }

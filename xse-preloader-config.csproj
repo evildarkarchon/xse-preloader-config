@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -10,15 +10,18 @@
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <PlatformTarget>x64</PlatformTarget>
+        <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <PlatformTarget>x64</PlatformTarget>
+        <AvaloniaUseCompiledXaml>true</AvaloniaUseCompiledXaml>
     </PropertyGroup>
 
     <ItemGroup>
         <Folder Include="Models\"/>
         <AvaloniaResource Include="Assets\**"/>
         <Folder Include="Services\"/>
+        <Folder Include="Utils\"/>
     </ItemGroup>
 
     <ItemGroup>
